@@ -4,6 +4,10 @@ A native macOS menu bar app for starting, stopping, and monitoring [ARI](https:/
 
 Lives in your menu bar. One click to start ARI, one click to stop it, and a live status indicator so you always know whether your local stack is up.
 
+<p align="center">
+  <img src="docs/menu.jpg" alt="ARI Menu open in the macOS menu bar showing a green status indicator and Start/Stop controls" width="360" />
+</p>
+
 ---
 
 ## Features
