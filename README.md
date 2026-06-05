@@ -24,35 +24,48 @@ The compiled `.app` bundle is around 400 KB and consumes negligible memory.
 ## Requirements
 
 - macOS 13 (Ventura) or later
-- Swift 5.9+ toolchain (ships with Xcode 15 or the standalone Command Line Tools)
+- Swift 5.9+ toolchain (ships with Xcode 15 or the standalone Command Line Tools — `xcode-select --install`)
 - A working [ARI](https://github.com/ARIsoftware/ARI) checkout somewhere on disk (default location: `~/ARI`)
-
-## Build
-
-```bash
-bash Scripts/build-app.sh
-```
-
-This compiles the binary in release mode and assembles `ARIMenu.app` in the project root. Drag it to `/Applications` (or wherever you like).
-
-> If you'd rather invoke the script directly (`./Scripts/build-app.sh`), make it executable once: `chmod +x Scripts/build-app.sh`.
 
 ## Install
 
-1. Build (above).
-2. Move `ARIMenu.app` to `/Applications` so login items resolve correctly:
+Run these one at a time:
+
+1. Clone the repo:
+
+   ```bash
+   git clone https://github.com/ARIsoftware/ARI-MENU.git
+   ```
+
+2. Move into the project folder:
+
+   ```bash
+   cd ARI-MENU
+   ```
+
+3. Build the app:
+
+   ```bash
+   bash Scripts/build-app.sh
+   ```
+
+4. Move it into your Applications folder:
+
    ```bash
    mv ARIMenu.app /Applications/
    ```
-3. Launch it:
+
+5. Launch it:
+
    ```bash
    open /Applications/ARIMenu.app
    ```
-4. Look for the circle icon in your menu bar (right side). The app has no Dock presence by design.
 
-> **First launch and Gatekeeper.** The `.app` is ad-hoc signed, so macOS may show "unidentified developer" the first time you open it. Right-click → **Open** → confirm in the dialog. You only need to do this once.
+Look for the circle icon on the right side of your menu bar. That's it.
 
-> **App Management permission.** macOS will prompt you to allow ARI Menu to manage other apps. This is required because **Stop** sends `SIGTERM` to the dev server process (which macOS treats as a different app). Click **Allow**. You can review the permission later under System Settings → Privacy & Security → App Management.
+> **No Gatekeeper warnings.** Because you compiled the app locally, macOS doesn't apply the quarantine flag it puts on downloaded files. The app launches with no scary "could not verify" dialog — one of the reasons we ship source instead of a prebuilt binary.
+
+> **App Management permission.** On first launch, macOS will prompt you to allow ARI Menu to manage other apps. This is required because **Stop** sends `SIGTERM` to the dev server process (which macOS treats as a different app). Click **Allow**. You can review the permission later under System Settings → Privacy & Security → App Management.
 
 ## Configuration
 
@@ -81,7 +94,7 @@ The full source is in `Sources/ARIMenu/` — nine small Swift files, roughly 800
 ## Repository layout
 
 ```
-ari-menu/
+ARI-MENU/
 ├── Package.swift              # SwiftPM executable target (macOS 13+)
 ├── Sources/ARIMenu/           # Application source (~800 lines across 9 files)
 ├── Scripts/build-app.sh       # Compiles and assembles ARIMenu.app
