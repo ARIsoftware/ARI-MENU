@@ -1,8 +1,6 @@
 # ARI Menu
 
-A native macOS menu bar app for starting, stopping, and monitoring [ARI](https://github.com/ARIsoftware/ARI) — the open-source personal ops platform.
-
-Lives in your menu bar. One click to start ARI, one click to stop it, and a live status indicator so you always know whether your local stack is up.
+ARI Menu is a completely optional macOS native menu bar app to manage [ARI.Software](https://ari.software). It is free and open source. You can use it to easily start ARI, check the status, view the logs - all from the little circle in your menu bar.
 
 <p align="center">
   <img src="docs/menu.jpg" alt="ARI Menu open in the macOS menu bar showing a green status indicator and Start/Stop controls" width="360" />
@@ -29,55 +27,7 @@ The compiled `.app` bundle is around 400 KB and consumes negligible memory.
 
 ## Install
 
-Run these one at a time:
-
-1. Clone the repo:
-
-   ```bash
-   git clone https://github.com/ARIsoftware/ARI-MENU.git
-   ```
-
-2. Move into the project folder:
-
-   ```bash
-   cd ARI-MENU
-   ```
-
-3. Build the app:
-
-   ```bash
-   bash Scripts/build-app.sh
-   ```
-
-4. Move it into your Applications folder:
-
-   ```bash
-   mv ARIMenu.app /Applications/
-   ```
-
-5. Launch it:
-
-   ```bash
-   open /Applications/ARIMenu.app
-   ```
-
-Look for the circle icon on the right side of your menu bar. That's it.
-
-> **No Gatekeeper warnings.** Because you compiled the app locally, macOS doesn't apply the quarantine flag it puts on downloaded files. The app launches with no scary "could not verify" dialog — one of the reasons we ship source instead of a prebuilt binary.
-
-> **App Management permission.** On first launch, macOS will prompt you to allow ARI Menu to manage other apps. This is required because **Stop** sends `SIGTERM` to the dev server process (which macOS treats as a different app). Click **Allow**. You can review the permission later under System Settings → Privacy & Security → App Management.
-
-## Configuration
-
-Open the menu and choose **Settings…** to configure:
-
-| Setting | Default | Notes |
-|---|---|---|
-| ARI repository path | `~/ARI` | The folder containing the `ari` CLI shim. Use the Browse button to pick another location. |
-| Status poll interval | 5 seconds | How often the app probes `localhost:3000` to detect whether ARI is running. 2–30 seconds. |
-| Launch at login | On | Registers the app as a login item via `SMAppService`. |
-
-Settings are stored in standard `UserDefaults` under the bundle identifier `ari.software.menu`.
+Visit [https://ari.software/docs/menu-app](https://ari.software/docs/menu-app) for installation instructions.
 
 ## How it works
 
@@ -108,4 +58,4 @@ ARI-MENU/
 
 ## Related
 
-- [ARI](https://github.com/ARIsoftware/ARI) — the upstream personal ops platform this menu app controls.
+- [ARI.Software](https://github.com/ARIsoftware/ARI) — the upstream personal ops platform this menu app controls.
