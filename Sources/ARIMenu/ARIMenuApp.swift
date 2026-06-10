@@ -38,7 +38,7 @@ struct ARIMenuApp: App {
                 .environmentObject(settings)
                 .environmentObject(controller)
         }
-        .defaultSize(width: 520, height: 280)
+        .defaultSize(width: 560, height: 640)
         .windowResizability(.contentSize)
     }
 }

@@ -12,6 +12,7 @@ final class AppSettings: ObservableObject {
         static let ariPath = "ariPath"
         static let launchAtLogin = "launchAtLogin"
         static let pollInterval = "pollInterval"
+        static let allowLanAccess = "allowLanAccess"
     }
 
     @Published var ariPath: String {
@@ -29,6 +30,10 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(pollInterval, forKey: Keys.pollInterval) }
     }
 
+    @Published var allowLanAccess: Bool {
+        didSet { defaults.set(allowLanAccess, forKey: Keys.allowLanAccess) }
+    }
+
     private init() {
         self.ariPath = defaults.string(forKey: Keys.ariPath) ?? "~/ARI"
 
@@ -39,5 +44,7 @@ final class AppSettings: ObservableObject {
 
         let storedInterval = defaults.double(forKey: Keys.pollInterval)
         self.pollInterval = storedInterval > 0 ? storedInterval : 5.0
+
+        self.allowLanAccess = defaults.bool(forKey: Keys.allowLanAccess)
     }
 }

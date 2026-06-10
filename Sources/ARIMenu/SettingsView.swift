@@ -26,6 +26,23 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Network") {
+                Toggle("Allow LAN Access", isOn: $settings.allowLanAccess)
+                Text("When you start ARI is only available on this computer (localhost). When Allow LAN Access is toggled on, ARI is also accessible from other devices on the same Wi-Fi or LAN.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if controller.state.isRunningOrStarting
+                    && settings.allowLanAccess != controller.startedWithLan {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(.orange)
+                        Text("Stop and start ARI for this change to take effect.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
             Section("Status Polling") {
                 HStack {
                     Slider(value: $settings.pollInterval, in: 2...30, step: 1)
@@ -44,7 +61,7 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .padding()
-        .frame(minWidth: 480)
+        .frame(minWidth: 520, minHeight: 600)
         .onChange(of: settings.ariPath) { _ in
             controller.refreshPathExistence()
         }

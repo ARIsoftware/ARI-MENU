@@ -50,6 +50,9 @@ enum ARIState: Equatable {
 final class ARIController: ObservableObject {
     @Published private(set) var state: ARIState = .unknown
     @Published private(set) var ariPathExists: Bool = false
+    /// True only when the currently-running ARI was launched with --lan.
+    /// Toggling the setting later does not retroactively rebind the server.
+    @Published private(set) var startedWithLan: Bool = false
 
     private let settings = AppSettings.shared
     private let logStore = LogStore.shared
@@ -103,7 +106,10 @@ final class ARIController: ObservableObject {
         } else {
             next = .stopped
         }
-        if state != next { state = next }
+        if state != next {
+            state = next
+            if next == .stopped { startedWithLan = false }
+        }
     }
 
     // MARK: - Start
@@ -114,16 +120,21 @@ final class ARIController: ObservableObject {
 
         // If the port is already open, ARI is already running (likely started
         // outside the menu app). Spawning would just crash on port conflict.
+        // We can't know how it was started, so don't claim LAN.
         if portIsOpenSync() {
             logStore.appendBanner("ARI already running on :\(AppConstants.devServerPort) — skipping spawn")
+            startedWithLan = false
             if state != .running { state = .running }
             return
         }
 
+        let lanMode = settings.allowLanAccess
         state = .starting
-        logStore.appendBanner("Starting ARI…")
+        startedWithLan = lanMode
+        let lanFlag = lanMode ? " --lan" : ""
+        logStore.appendBanner("Starting ARI\(lanMode ? " (LAN)" : "")…")
 
-        let process = makeShellProcess("./ari start --verbose")
+        let process = makeShellProcess("./ari start --verbose\(lanFlag)")
         process.terminationHandler = { [weak self] proc in
             Task { @MainActor in
                 guard let self else { return }
@@ -241,6 +252,54 @@ final class ARIController: ObservableObject {
 
     private func ariScriptURL() -> URL {
         URL(fileURLWithPath: expandedAriPath).appendingPathComponent("ari")
+    }
+
+    // MARK: - LAN address
+
+    /// Best-effort IPv4 address on the primary Wi-Fi / Ethernet interface.
+    /// Returns nil if no non-loopback IPv4 is bound — e.g. offline.
+    func lanIPv4() -> String? {
+        var ifaddrPtr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddrPtr) == 0, let first = ifaddrPtr else { return nil }
+        defer { freeifaddrs(ifaddrPtr) }
+
+        // Prefer en0 (Wi-Fi on most Macs), fall back to en1..en9.
+        let preferred = ["en0", "en1", "en2", "en3", "en4", "en5", "en6", "en7", "en8", "en9"]
+        var candidates: [String: String] = [:]
+
+        for ptr in sequence(first: first, next: { $0.pointee.ifa_next }) {
+            let flags = Int32(ptr.pointee.ifa_flags)
+            guard (flags & IFF_UP) == IFF_UP,
+                  (flags & IFF_RUNNING) == IFF_RUNNING,
+                  (flags & IFF_LOOPBACK) == 0
+            else { continue }
+
+            guard let addr = ptr.pointee.ifa_addr,
+                  addr.pointee.sa_family == UInt8(AF_INET)
+            else { continue }
+
+            let name = String(cString: ptr.pointee.ifa_name)
+            var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+            let result = getnameinfo(
+                addr,
+                socklen_t(addr.pointee.sa_len),
+                &host, socklen_t(host.count),
+                nil, 0,
+                NI_NUMERICHOST
+            )
+            guard result == 0 else { continue }
+            candidates[name] = String(cString: host)
+        }
+
+        for name in preferred {
+            if let ip = candidates[name] { return ip }
+        }
+        return candidates.values.first
+    }
+
+    func lanURL() -> URL? {
+        guard let ip = lanIPv4() else { return nil }
+        return URL(string: "http://\(ip):\(AppConstants.devServerPort)")
     }
 
     // MARK: - Port probe (sync)

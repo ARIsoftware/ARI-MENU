@@ -9,6 +9,19 @@ struct MenuContent: View {
     var body: some View {
         Text(controller.state.label)
 
+        if controller.state == .running {
+            let localhost = AppConstants.devServerURL
+            Button(localhost.absoluteString) {
+                NSWorkspace.shared.open(localhost)
+            }
+            .keyboardShortcut("o")
+            if controller.startedWithLan, let lan = controller.lanURL() {
+                Button(lan.absoluteString) {
+                    NSWorkspace.shared.open(lan)
+                }
+            }
+        }
+
         Divider()
 
         if controller.ariPathExists {
@@ -21,12 +34,6 @@ struct MenuContent: View {
             }
             .keyboardShortcut(controller.state.isRunningOrStarting ? "." : "r")
             .disabled(controller.state.isTransitioning)
-
-            Button("Open ARI in Browser") {
-                NSWorkspace.shared.open(AppConstants.devServerURL)
-            }
-            .keyboardShortcut("o")
-            .disabled(controller.state != .running)
 
             Button("Show Logs…") {
                 openWindow(id: WindowID.logs)
