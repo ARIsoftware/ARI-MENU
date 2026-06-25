@@ -2,7 +2,7 @@
 
 ARI Menu is a completely optional macOS native menu bar app to manage [ARI.Software](https://ari.software). It is free and open source. You can use it to easily start ARI, check the status, view the logs - all from the little circle in your menu bar.
 
-Visit [https://ari.software/docs/menu-app](https://ari.software/docs/menu-app) for details.
+[https://ari.software/docs/menu-app](https://ari.software/docs/menu-app)
 
 <p align="center">
   <img src="docs/menu.jpg" alt="ARI Menu open in the macOS menu bar showing a green status indicator and Start/Stop controls" width="360" />
