@@ -53,6 +53,9 @@ final class ARIController: ObservableObject {
     /// True only when the currently-running ARI was launched with --lan.
     /// Toggling the setting later does not retroactively rebind the server.
     @Published private(set) var startedWithLan: Bool = false
+    /// True while a restart is in flight: from the moment `restart()` is
+    /// invoked, through the stop + port-cooldown, until the new start spawns.
+    @Published private(set) var isRestarting: Bool = false
 
     private let settings = AppSettings.shared
     private let logStore = LogStore.shared
@@ -112,6 +115,22 @@ final class ARIController: ObservableObject {
         }
     }
 
+    // MARK: - Display
+
+    /// Presentation that folds the restart-in-flight flag into the
+    /// world-derived `state`, so the menu text and the menu-bar icon never
+    /// disagree. A restart is a transition, so it borrows the existing
+    /// transitioning look rather than duplicating those literals.
+    var displayLabel: String {
+        isRestarting ? "ARI: restarting…" : state.label
+    }
+    var displaySymbolName: String {
+        isRestarting ? ARIState.starting.symbolName : state.symbolName
+    }
+    var displayTint: Color {
+        isRestarting ? ARIState.starting.tint : state.tint
+    }
+
     // MARK: - Start
 
     func start() {
@@ -155,7 +174,10 @@ final class ARIController: ObservableObject {
 
     // MARK: - Stop
 
-    func stop() {
+    /// Stops ARI. `completion` runs on the main actor once `./ari stop` has
+    /// finished (or immediately if the teardown couldn't be spawned) — used to
+    /// chain the start half of a restart.
+    func stop(completion: (() -> Void)? = nil) {
         guard stopProcess == nil else { return }
         state = .stopping
         logStore.appendBanner("Stopping ARI…")
@@ -179,6 +201,7 @@ final class ARIController: ObservableObject {
                 self.stopProcess = nil
                 self.logStore.appendBanner("ari stop finished")
                 self.state = .stopped
+                completion?()
             }
         }
 
@@ -188,6 +211,31 @@ final class ARIController: ObservableObject {
         } catch {
             logStore.appendBanner("Failed to spawn ari stop: \(error.localizedDescription)")
             state = .stopped
+            completion?()
+        }
+    }
+
+    // MARK: - Restart
+
+    /// Stops ARI, waits for the dev port to be released, then starts it again.
+    /// The cooldown matters: start()'s port probe treats an open port as "ARI
+    /// already running" and skips the spawn, so restarting immediately would
+    /// silently no-op. Restarting uses the current LAN setting, so a freshly
+    /// toggled --lan preference takes effect.
+    func restart() {
+        guard ariPathExists else { return }
+        guard stopProcess == nil, !isRestarting else { return }
+
+        isRestarting = true
+        logStore.appendBanner("Restarting ARI…")
+
+        stop { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(AppConstants.restartCooldownSeconds))
+                self.isRestarting = false
+                self.start()
+            }
         }
     }
 

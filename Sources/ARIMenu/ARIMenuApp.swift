@@ -21,9 +21,9 @@ struct ARIMenuApp: App {
                 .environmentObject(controller)
                 .environmentObject(settings)
         } label: {
-            Image(systemName: controller.state.symbolName)
+            Image(systemName: controller.displaySymbolName)
                 .symbolRenderingMode(.palette)
-                .foregroundStyle(controller.state.tint)
+                .foregroundStyle(controller.displayTint)
         }
         .menuBarExtraStyle(.menu)
 

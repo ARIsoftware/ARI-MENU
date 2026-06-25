@@ -7,7 +7,7 @@ struct MenuContent: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Text(controller.state.label)
+        Text(controller.displayLabel)
 
         if controller.state == .running {
             let localhost = AppConstants.devServerURL
@@ -25,15 +25,28 @@ struct MenuContent: View {
         Divider()
 
         if controller.ariPathExists {
-            Button(startStopTitle) {
-                if controller.state.isRunningOrStarting {
-                    controller.stop()
-                } else {
-                    controller.start()
+            if controller.isRestarting {
+                Button("Restarting…") {}
+                    .disabled(true)
+            } else {
+                Button(startStopTitle) {
+                    if controller.state.isRunningOrStarting {
+                        controller.stop()
+                    } else {
+                        controller.start()
+                    }
+                }
+                .keyboardShortcut(controller.state.isRunningOrStarting ? "." : "r")
+                .disabled(controller.state.isTransitioning)
+
+                if controller.state == .running {
+                    // 'r' is free while running — Stop uses '.' in this state.
+                    Button("Restart ARI") {
+                        controller.restart()
+                    }
+                    .keyboardShortcut("r")
                 }
             }
-            .keyboardShortcut(controller.state.isRunningOrStarting ? "." : "r")
-            .disabled(controller.state.isTransitioning)
 
             Button("Show Logs…") {
                 openWindow(id: WindowID.logs)
